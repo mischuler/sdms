@@ -1,5 +1,5 @@
 # dependencies
-Lambda/*/site-packages
+Lambda/*/site-packages/*
 sdms/node_modules
 
 # deployable files
