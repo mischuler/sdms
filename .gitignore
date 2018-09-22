@@ -1,0 +1,10 @@
+# dependencies
+Lambda/*/site-packages
+sdms/node_modules
+
+# deployable files
+*.zip
+
+# production
+sdms/build
+sdms
