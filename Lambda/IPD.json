@@ -1,0 +1,90 @@
+{
+  "Comment": "Create an Ingest, Transcode, and Distribute",
+    "StartAt": "scanForVirus",
+      "States": {
+		"scanForVirus": {
+        "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:343744686176:function:scanForVirus",
+            "Next": "identifyAssetClass"
+        },
+          "identifyAssetClass": {
+        "Type": "Task",
+      "Resource": "arn:aws:lambda:us-east-1:343744686176:function:identifyAssetClass",
+            "Next": "chooseMetadataExtractor"
+        },
+    "chooseMetadataExtractor": {
+          "Type" : "Choice",
+        "Choices": [
+        {
+          "Variable": "$.assetClass",
+            "StringEquals": "Image",
+              "Next": "extractMetadataFromExiftool"
+              }
+            ],
+          "Default": "extractMetadataFromMediainfo"
+      },
+          "extractMetadataFromExiftool": {
+        "Type" : "Task",
+      "Resource": "arn:aws:lambda:us-east-1:343744686176:function:extractMetadataFromExiftool",
+            "Next": "registerAsset"
+        },
+    "extractMetadataFromMediainfo": {
+          "Type" : "Task",
+        "Resource": "arn:aws:lambda:us-east-1:343744686176:function:extractMetadataFromMediainfo",
+      "Next": "registerAsset"
+          },
+
+      "registerAsset": {
+            "Type": "Task",
+          "Resource": "arn:aws:lambda:us-east-1:343744686176:function:registerAsset",
+        "Next": "chooseTranscodeOption"
+    },
+          
+        "chooseTranscodeOption": {
+      "Type" : "Choice",
+            "Choices": [
+            {
+              "Variable": "$.assetClass",
+                "StringEquals": "Image",
+          "Next": "createImageThumbnail"
+          },
+          {
+            "Variable": "$.assetClass",
+              "StringEquals": "Video",
+                "Next": "transcodeVideo"
+        },
+        {
+          "Variable": "$.assetClass",
+            "StringEquals": "Audio",
+              "Next": "transcodeAudio"
+              }
+            ],
+          "Default": "moveFilesToCDN"
+      },
+
+           "createImageThumbnail": {
+         "Type": "Task",
+       "Resource": "arn:aws:lambda:us-east-1:343744686176:function:createImageThumbnail",
+             "Next": "moveFilesToCDN"
+         },
+		   "transcodeVideo": {
+		   "Type": "Task",
+				 "Resource": "arn:aws:lambda:us-east-1:343744686176:function:transcodeVideo",
+				 "Next": "moveFilesToCDN"
+		   },
+	   "transcodeAudio": {
+	   "Type": "Task",
+			 "Resource": "arn:aws:lambda:us-east-1:343744686176:function:transcodeAudio",
+			 "Next": "moveFilesToCDN"
+	   },
+					   
+             
+           
+           "moveFilesToCDN": {
+         "Type": "Task",
+       "Resource": "arn:aws:lambda:us-east-1:343744686176:function:moveFilesToCDN",
+             "End": true
+         }
+     }
+}
+

@@ -1,0 +1,53 @@
+{
+    "Comment": "Workflow to handle management of files",
+    "StartAt": "chooseDestination",
+    "States": {
+        "chooseDestination": {
+            "Type" : "Choice",
+            "Choices": [{
+                "Variable": "$.locationDestination",
+                "StringEquals": "delete",
+                "Next": "deleteFiles"
+            }],
+            "Default": "moveFiles"
+        },
+        "moveFiles": {
+            "Type" : "Task",
+            "Resource": "arn:aws:states:us-east-1:343744686176:activity:moveFiles",
+            "Next": "chooseCleanUp"
+        },
+        "chooseCleanUp": {
+            "Type" : "Choice",
+            "Choices": [{
+                "Or" : [{
+                        "Variable": "$.locationDestination",
+                        "StringEquals": "archive"
+                    },
+                    {
+                        "Variable": "$.locationSource",
+                        "StringEquals": "archive"
+                    }],
+                "Next": "cleanUpLandingPad"
+            }],
+            "Default": "passState"
+          },
+
+        "cleanUpLandingPad": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:us-east-1:343744686176:activity:cleanUpLandingPad",
+            "Next": "deleteFiles"
+        },
+          
+        "deleteFiles": {
+           "Type": "Task",
+           "Resource": "arn:aws:states:us-east-1:343744686176:activity:deleteFiles",
+           "End": true
+        },
+        
+        "passState": {
+           "Type": "Pass",
+           "End": true
+        }
+    }
+}
+
